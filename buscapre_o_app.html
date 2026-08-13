@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BuscaPreço - ExpoAGAS</title>
+    <!-- Fonte Inter do Google Fonts para um visual moderno e limpo -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome para os ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Variáveis de Cores (Identidade Visual) */
+        :root {
+            --vermelho-base: #B20000;
+            --vermelho-escuro: #7C0000;
+            --rs-verde: #1D5903;
+            --rs-vermelho: #BF2604;
+            --rs-amarelo: #F29F05;
+            --fundo-app: #F5F7FA;
+            --texto-escuro: #333333;
+            --texto-claro: #777777;
+            --branco: #FFFFFF;
+            --borda: #E0E0E0;
+        }
+
+        /* Reset e Configurações Base */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #d1d5db; /* Cor de fundo da tela do PC */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Container simulando a tela do celular */
+        #app-container {
+            width: 100%;
+            max-width: 400px; /* Largura máxima para parecer mobile no PC */
+            height: 100vh;
+            max-height: 850px;
+            background-color: var(--fundo-app);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Telas (Esconder e Mostrar) */
+        .screen {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: var(--fundo-app);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- TELA 1: SPLASH SCREEN --- */
+        #splash-screen {
+            background-color: var(--vermelho-base);
+            justify-content: center;
+            align-items: center;
+            color: var(--branco);
+            text-align: center;
+            z-index: 100;
+        }
+
+        .logo-splash {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+
+        .slogan-splash {
+            font-size: 14px;
+            font-weight: 300;
+            opacity: 0.9;
+            max-width: 80%;
+        }
+
+        .splash-footer {
+            position: absolute;
+            bottom: 40px;
+        }
+
+        /* Ícone do Menu com Cores do RS e Contorno Branco para Acessibilidade */
+        .menu-rs-icon {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+        }
+
+        .menu-rs-icon .bar {
+            width: 28px;
+            height: 5px;
+            border-radius: 3px;
+            border: 1px solid var(--branco); /* Borda para contraste */
+        }
+
+        .bar-green { background-color: var(--rs-verde); }
+        .bar-red { background-color: var(--rs-vermelho); }
+        .bar-yellow { background-color: var(--rs-amarelo); }
+
+        /* --- CABEÇALHO PADRÃO (HEADER) --- */
+        .header {
+            background-color: var(--vermelho-base);
+            color: var(--branco);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .header-btn {
+            background: none;
+            border: none;
+            color: var(--branco);
+            font-size: 20px;
+            cursor: pointer;
+            width: 30px;
+        }
+
+        /* --- TELA 2: HOME / LISTA --- */
+        .content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 90px; /* Espaço para o botão fixo */
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 1px solid var(--borda);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: var(--vermelho-base);
+        }
+
+        .add-btn {
+            background-color: var(--vermelho-escuro);
+            color: var(--branco);
+            border: none;
+            border-radius: 8px;
+            width: 45px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .list-item {
+            background: var(--branco);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            border: 1px solid var(--borda);
+        }
+
+        .list-item-name {
+            font-size: 15px;
+            color: var(--texto-escuro);
+            font-weight: 500;
+        }
+
+        .delete-btn {
+            color: var(--texto-claro);
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            color: var(--vermelho-base);
+        }
+
+        /* Botão Fixo no Rodapé */
+        .bottom-cta {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(to top, var(--fundo-app) 70%, transparent);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--vermelho-base);
+            color: var(--branco);
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(178, 0, 0, 0.3);
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary:active {
+            background-color: var(--vermelho-escuro);
+        }
+
+        /* --- TELA 3: RESULTADOS (COTAÇÕES) --- */
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .filter-tag {
+            padding: 6px 14px;
+            background-color: var(--branco);
+            border: 1px solid var(--borda);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--texto-claro);
+            white-space: nowrap;
+        }
+
+        .filter-tag.active {
+            background-color: var(--vermelho-base);
+            color: var(--branco);
+            border-color: var(--vermelho-base);
+        }
+
+        .market-card {
+            background-color: var(--branco);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border: 1px solid var(--borda);
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .market-card:active {
+            transform: scale(0.98);
+        }
+
+        .market-card.highlight {
+            border: 2px solid var(--rs-verde);
+        }
+
+        .badge-highlight {
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            background-color: var(--rs-verde);
+            color: var(--branco);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(29, 89, 3, 0.3);
+        }
+
+        .market-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--texto-escuro);
+            margin-bottom: 5px;
+        }
+
+        .market-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 15px;
+        }
+
+        .market-price {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--vermelho-base);
+        }
+        
+        .highlight .market-price {
+            color: var(--rs-verde);
+        }
+
+        .market-distance {
+            font-size: 13px;
+            color: var(--texto-claro);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* --- TELA 4: DETALHES DO CARRINHO --- */
+        .map-placeholder {
+            width: 100%;
+            height: 120px;
+            background-color: #E2E8F0;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--texto-claro);
+            font-size: 14px;
+            margin-bottom: 20px;
+            border: 1px solid var(--borda);
+        }
+
+        .summary-card {
+            background-color: var(--branco);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .summary-label {
+            font-size: 13px;
+            color: var(--texto-claro);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .summary-total {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--rs-verde);
+            margin-top: 5px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px dashed var(--borda);
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-item-info h4 {
+            font-size: 14px;
+            color: var(--texto-escuro);
+            margin-bottom: 4px;
+        }
+
+        .cart-item-info span {
+            font-size: 12px;
+            color: var(--rs-amarelo);
+            font-weight: 600;
+        }
+
+        .cart-item-prices {
+            text-align: right;
+        }
+
+        .old-price {
+            font-size: 12px;
+            color: var(--texto-claro);
+            text-decoration: line-through;
+            display: block;
+        }
+
+        .new-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--texto-escuro);
+        }
+
+        /* Loading Spinner Fake */
+        #loading-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.9);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--vermelho-base);
+        }
+        
+        .spinner {
+            border: 4px solid var(--borda);
+            border-top: 4px solid var(--vermelho-base);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    
+    <!-- LOADING (Uso interno do JS) -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <p style="font-weight: 600;">IA Cotando Preços...</p>
+    </div>
+
+    <!-- ================= TELA 1: SPLASH ================= -->
+    <div id="splash-screen" class="screen active">
+        <h1 class="logo-splash">BuscaPreço</h1>
+        <p class="slogan-splash">Vem buscar os Preços ideais, vem com BP</p>
+        
+        <div class="splash-footer">
+            <div class="menu-rs-icon">
+                <div class="bar bar-green"></div>
+                <div class="bar bar-red"></div>
+                <div class="bar bar-yellow"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TELA 2: HOME / LISTA ================= -->
+    <div id="home-screen" class="screen">
+        <div class="header">
+            <button class="menu-rs-icon">
+                <div class="bar bar-green"></div>
+                <div class="bar bar-red"></div>
+                <div class="bar bar-yellow"></div>
+            </button>
+            <div class="header-title">Minha Lista</div>
+            <div style="width: 28px;"></div> <!-- Spacer invisível para alinhar o título -->
+        </div>
+
+        <div class="content">
+            <div class="input-group">
+                <input type="text" id="item-input" placeholder="Ex: Arroz branco 5kg">
+                <button class="add-btn" onclick="addItem()"><i class="fa-solid fa-plus"></i></button>
+            </div>
+
+            <div id="shopping-list">
+                <!-- Itens serão adicionados aqui via JS -->
+                <div class="list-item">
+                    <span class="list-item-name">Arroz Tio João 5kg</span>
+                    <button class="delete-btn" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+                <div class="list-item">
+                    <span class="list-item-name">Feijão Preto 1kg</span>
+                    <button class="delete-btn" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+                <div class="list-item">
+                    <span class="list-item-name">Leite Integral 1L (Caixa)</span>
+                    <button class="delete-btn" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-cta">
+            <button class="btn-primary" onclick="simulateAI()">Buscar Preços Ideais</button>
+        </div>
+    </div>
+
+    <!-- ================= TELA 3: RESULTADOS ================= -->
+    <div id="results-screen" class="screen">
+        <div class="header">
+            <button class="header-btn" onclick="showScreen('home-screen')"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="header-title">Cotações (IA)</div>
+            <div style="width: 30px;"></div>
+        </div>
+
+        <div class="content">
+            <div class="filters">
+                <div class="filter-tag active">Menor Preço</div>
+                <div class="filter-tag">Mais Próximo</div>
+                <div class="filter-tag">Maior Quantidade Barata</div>
+            </div>
+
+            <!-- Card 1 (Vencedor) -->
+            <div class="market-card highlight" onclick="showDetails('Supermercado Carrefour', '132,50', '2.5')">
+                <div class="badge-highlight"><i class="fa-solid fa-star"></i> Melhor Opção</div>
+                <div class="market-name">Supermercado Carrefour</div>
+                <p style="font-size: 13px; color: var(--texto-claro);">Possui 3 dos itens mais baratos.</p>
+                <div class="market-details">
+                    <div class="market-distance"><i class="fa-solid fa-location-dot"></i> 2.5 km</div>
+                    <div class="market-price">R$ 132,50</div>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="market-card" onclick="showDetails('Zaffari Bourbon', '145,90', '1.2')">
+                <div class="market-name">Zaffari Bourbon</div>
+                <p style="font-size: 13px; color: var(--texto-claro);">Possui 1 dos itens mais baratos.</p>
+                <div class="market-details">
+                    <div class="market-distance"><i class="fa-solid fa-location-dot"></i> 1.2 km</div>
+                    <div class="market-price">R$ 145,90</div>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="market-card" onclick="showDetails('Nacional', '149,00', '4.0')">
+                <div class="market-name">Nacional</div>
+                <p style="font-size: 13px; color: var(--texto-claro);">Nenhum item com menor preço isolado.</p>
+                <div class="market-details">
+                    <div class="market-distance"><i class="fa-solid fa-location-dot"></i> 4.0 km</div>
+                    <div class="market-price">R$ 149,00</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TELA 4: DETALHES ================= -->
+    <div id="details-screen" class="screen">
+        <div class="header">
+            <button class="header-btn" onclick="showScreen('results-screen')"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="header-title" id="detail-market-name">Mercado</div>
+            <div style="width: 30px;"></div>
+        </div>
+
+        <div class="content" style="padding-bottom: 100px;">
+            <div class="summary-card">
+                <div class="summary-label">Preço Total do Carrinho</div>
+                <div class="summary-total" id="detail-market-price">R$ 0,00</div>
+                <div style="margin-top: 10px; font-size: 14px; color: var(--texto-claro);">
+                    <i class="fa-solid fa-location-dot"></i> A <span id="detail-market-distance">0</span> km de você
+                </div>
+            </div>
+
+            <div class="map-placeholder">
+                <i class="fa-solid fa-map" style="margin-right: 8px;"></i> [Espaço para o Mapa - API Google]
+            </div>
+
+            <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--texto-escuro);">Itens do Carrinho</h3>
+            
+            <div style="background: var(--branco); border-radius: 12px; padding: 0 15px; border: 1px solid var(--borda);">
+                <div class="cart-item">
+                    <div class="cart-item-info">
+                        <h4>Arroz Tio João 5kg</h4>
+                        <span><i class="fa-solid fa-tag"></i> Mais barato da região</span>
+                    </div>
+                    <div class="cart-item-prices">
+                        <span class="old-price">R$ 28,90</span>
+                        <span class="new-price">R$ 24,50</span>
+                    </div>
+                </div>
+                <div class="cart-item">
+                    <div class="cart-item-info">
+                        <h4>Feijão Preto 1kg</h4>
+                    </div>
+                    <div class="cart-item-prices">
+                        <span class="old-price">R$ 8,50</span>
+                        <span class="new-price">R$ 7,90</span>
+                    </div>
+                </div>
+                <div class="cart-item">
+                    <div class="cart-item-info">
+                        <h4>Leite Integral 1L</h4>
+                        <span><i class="fa-solid fa-tag"></i> Desconto Leve 3 Pague 2</span>
+                    </div>
+                    <div class="cart-item-prices">
+                        <span class="old-price">R$ 5,99</span>
+                        <span class="new-price">R$ 4,79</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-cta">
+            <button class="btn-primary" style="background-color: var(--rs-verde); box-shadow: 0 4px 15px rgba(29, 89, 3, 0.3);">
+                <i class="fa-solid fa-route"></i> Iniciar Rota (Maps)
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Lógica simples de navegação entre telas
+    function showScreen(screenId) {
+        // Esconde todas
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        // Mostra a desejada
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    // Controle da Splash Screen
+    setTimeout(() => {
+        showScreen('home-screen');
+    }, 2500); // Fica visível por 2.5 segundos
+
+    // Função para adicionar item na lista (UI básica)
+    function addItem() {
+        const input = document.getElementById('item-input');
+        const list = document.getElementById('shopping-list');
+        
+        if(input.value.trim() !== '') {
+            const newItem = document.createElement('div');
+            newItem.className = 'list-item';
+            newItem.innerHTML = `
+                <span class="list-item-name">${input.value}</span>
+                <button class="delete-btn" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash-can"></i></button>
+            `;
+            list.appendChild(newItem);
+            input.value = ''; // Limpa o input
+        }
+    }
+
+    // Simulação da "IA" buscando preços (tela de carregamento fake)
+    function simulateAI() {
+        const loading = document.getElementById('loading-overlay');
+        loading.style.display = 'flex';
+        
+        // Simula um delay de processamento de API de 2 segundos
+        setTimeout(() => {
+            loading.style.display = 'none';
+            showScreen('results-screen');
+        }, 2000);
+    }
+
+    // Passar dados para a tela de detalhes
+    function showDetails(name, price, distance) {
+        document.getElementById('detail-market-name').innerText = name;
+        document.getElementById('detail-market-price').innerText = 'R$ ' + price;
+        document.getElementById('detail-market-distance').innerText = distance;
+        showScreen('details-screen');
+    }
+</script>
+
+</body>
+</html>
